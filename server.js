@@ -8,7 +8,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 const isSignedIn = require('./middleware/is-signed-in.js');
 const passUserToView = require('./middleware/pass-user-to-view.js');
-
+const User = require('./models/user.js');
 const authController = require('./controllers/auth.js');
 const foodsController = require('./controllers/foods.js');
 const port = process.env.PORT ? process.env.PORT : '3000';
@@ -35,6 +35,24 @@ app.get('/', (req, res) => {
     user: req.session.user,
   });
 });
+
+app.get('/users', async(req, res) => {
+  const users = await User.find()//get all user from the data base 
+  res.render('users/index.ejs', {users: users})
+})
+
+app.get('/users/show/:id', async(req,res) => {
+  try {
+    const user = await User.findById(req.params.id); // Fetch the user by ID
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+    res.render('users/show.ejs', { user: user }); // Pass the user to the view
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
+})
 
 app.get('/vip-lounge', (req, res) => {
   if (req.session.user) {
